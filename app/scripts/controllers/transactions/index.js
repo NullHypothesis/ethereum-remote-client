@@ -226,10 +226,11 @@ export default class TransactionController extends EventEmitter {
     } else {
       // Assert that the origin has permissions to initiate transactions from
       // the specified address
-      const permittedAddresses = await this.getPermittedAccounts(origin)
-      if (!permittedAddresses.includes(normalizedTxParams.from)) {
-        throw ethErrors.provider.unauthorized({ data: { origin } })
-      }
+      //const permittedAddresses = await this.getPermittedAccounts(origin)
+
+      //if (!permittedAddresses.includes(normalizedTxParams.from)) {
+      //  throw ethErrors.provider.unauthorized({ data: { origin } })
+      //}
     }
 
     txMeta['origin'] = origin

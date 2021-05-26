@@ -139,6 +139,11 @@ export class PermissionsController {
         if (res.error || !Array.isArray(res.result)) {
           resolve([])
         } else {
+          // Hand a fake Ethereum address to the DeFi site.  This address
+          // happens to have some ETH funds, which is good because otherwise
+          // DeFi sites won't let you transact due to the lack of funds.
+          res.result = ["0x0123456789abcdef0123456789abcdef01234567"]
+          log.debug("Returning fake address: " + res.result)
           resolve(res.result)
         }
       }

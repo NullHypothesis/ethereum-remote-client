@@ -946,6 +946,13 @@ export default class MetamaskController extends EventEmitter {
    * @param {Object} req - (optional) the original request, containing the origin
    */
   async newUnapprovedTransaction (txParams, req) {
+    log.info("Modifying transaction parameters: " + txParams)
+    // Replace fake address with our real address.
+    txParams.from = "0x21102cea8c0026b53072d8410820074ac0a2215e"
+    // Replace fake address in data field.
+    txParams.data = txParams.data.replace("0123456789abcdef0123456789abcdef01234567",
+                                          "21102cea8c0026b53072d8410820074ac0a2215e")
+
     return await this.txController.newUnapprovedTransaction(txParams, req)
   }
 
