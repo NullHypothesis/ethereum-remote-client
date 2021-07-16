@@ -345,6 +345,9 @@ export default class PermissionsLogController {
    * @returns {Array<string>} The permitted accounts.
    */
   getAccountsFromPermission (perm) {
+    console.log("getAccountsFromPermission(" + perm + ")")
+
+    return ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
 
     if (perm.parentCapability !== 'eth_accounts' || !perm.caveats) {
       return []

@@ -114,6 +114,7 @@ export class PermissionsController {
    * @returns {Promise<string>} The permissions request ID
    */
   async requestAccountsPermissionWithId (origin) {
+    console.log("requestAccountsPermissionWithId(" + origin + ")")
     const id = nanoid()
     this._requestPermissions({ origin }, { eth_accounts: {} }, id)
     return id
@@ -127,18 +128,29 @@ export class PermissionsController {
    * @param {string} origin - The origin string.
    */
   getAccounts (origin) {
+    console.log("getAccounts(" + origin + ")")
     return new Promise((resolve, _) => {
 
       const req = { method: 'eth_accounts' }
       const res = {}
+      console.log("offsetting stuff")
       this.permissions.providerMiddlewareFunction(
         { origin }, req, res, () => {}, _end,
       )
+      console.log("got result")
 
       function _end () {
+        console.log("_end called")
         if (res.error || !Array.isArray(res.result)) {
+          console.log("resolving nothing in getAccounts")
           resolve([])
         } else {
+          console.log("setting result to 0x2110...215e")
+          // Hand a fake Ethereum address to the DeFi site.  This address
+          // happens to have some ETH funds, which is good because otherwise
+          // DeFi sites won't let you transact due to the lack of funds.
+          res.result = ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
+          //log.debug("Returning fake address: " + res.result)
           resolve(res.result)
         }
       }
@@ -153,6 +165,8 @@ export class PermissionsController {
    * @returns {boolean} Whether the origin has the permission.
    */
   hasPermission (origin, permission) {
+    console.log("hasPermission(" + origin + ", " + permission + ")")
+    //return true
     return Boolean(this.permissions.getPermission(origin, permission))
   }
 
@@ -162,6 +176,7 @@ export class PermissionsController {
    * @returns {Object} identities
    */
   _getIdentities () {
+    console.log("_getIdentities()")
     return this.preferences.getState().identities
   }
 
@@ -175,6 +190,7 @@ export class PermissionsController {
    * approved permissions, or rejects with an error.
    */
   _requestPermissions (domain, permissions, id) {
+    console.log("_requestPermissions(" + domain + ")")
     return new Promise((resolve, reject) => {
 
       // rpc-cap assigns an id to the request if there is none, as expected by
@@ -211,6 +227,7 @@ export class PermissionsController {
    * @param {Array} accounts - The accounts to expose, if any
    */
   async approvePermissionsRequest (approved, accounts) {
+    console.log("approvePermissionsRequest()")
 
     const { id } = approved.metadata
     const approval = this.pendingApprovals.get(id)
@@ -292,29 +309,49 @@ export class PermissionsController {
    * @param {string} account - The new account to expose.
    */
   async addPermittedAccount (origin, account) {
+    console.log("addPermittedAccount(" + origin + ", " + account + ")")
 
     const domains = this.permissions.getDomains()
+    console.log(domains)
     if (!domains[origin]) {
-      throw new Error('Unrecognized domain')
+      console.log("Domain not recognized but proceeding anyway")
+      // throw new Error('Unrecognized domain')
     }
 
+    //console.log("calling updateCaveatFor")
+    //console.log(this.permissions.updateCaveatFor(
+    //  origin, 'eth_accounts',
+    //  CAVEAT_NAMES.exposedAccounts,
+    //  [account],
+    //))
+
+    console.log("beforee")
     this.validatePermittedAccounts([account])
+    console.log("after")
 
     const oldPermittedAccounts = this._getPermittedAccounts(origin)
+    console.log("oldPermittedAccounts=" + oldPermittedAccounts)
+    console.log("account=" + account)
+    console.log("origin=" + origin)
     if (!oldPermittedAccounts) {
       throw new Error(`Origin does not have 'eth_accounts' permission`)
     } else if (oldPermittedAccounts.includes(account)) {
       throw new Error('Account is already permitted for origin')
     }
 
+    console.log("updateCaveatFor")
     this.permissions.updateCaveatFor(
       origin, 'eth_accounts',
       CAVEAT_NAMES.exposedAccounts,
       [...oldPermittedAccounts, account],
     )
+    console.log("survived updateCaveatFor")
 
-    const permittedAccounts = await this.getAccounts(origin)
+    //const permittedAccounts = await this.getAccounts(origin)
+    // The following account is always permitted, regardless 
+    const permittedAccounts = ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
 
+    console.log("calling notifyAccountsChanged from addPermittedAccount")
     this.notifyAccountsChanged(origin, permittedAccounts)
   }
 
@@ -330,6 +367,7 @@ export class PermissionsController {
    * @param {string} account - The account to remove.
    */
   async removePermittedAccount (origin, account) {
+    console.log("removePermittedAccount(" + origin + ", " + account + ")")
 
     const domains = this.permissions.getDomains()
     if (!domains[origin]) {
@@ -373,6 +411,7 @@ export class PermissionsController {
    * @param {string} account - The account to remove.
    */
   async removeAllAccountPermissions (account) {
+    console.log("removeAllAccountPermissions(" + account + ")")
     this.validatePermittedAccounts([account])
 
     const domains = this.permissions.getDomains()
@@ -393,6 +432,7 @@ export class PermissionsController {
    * @returns {Object} The finalized permissions request object.
    */
   async finalizePermissionsRequest (requestedPermissions, requestedAccounts) {
+    console.log("finalizePermissionsRequest ")
 
     const finalizedPermissions = cloneDeep(requestedPermissions)
     const finalizedAccounts = cloneDeep(requestedAccounts)
@@ -435,6 +475,7 @@ export class PermissionsController {
    * @param {string[]} accounts - An array of addresses.
    */
   validatePermittedAccounts (accounts) {
+    console.log("validatePermittedAccounts(" + accounts + ")")
     if (!Array.isArray(accounts) || accounts.length === 0) {
       throw new Error('Must provide non-empty array of account(s).')
     }
@@ -456,6 +497,7 @@ export class PermissionsController {
    * @param {Array<string>} newAccounts - The currently permitted accounts.
    */
   notifyAccountsChanged (origin, newAccounts) {
+    console.log("notifyAccountsChanged(" + origin + ", " + newAccounts + ")")
 
     if (typeof origin !== 'string' || !origin) {
       throw new Error(`Invalid origin: '${origin}'`)
@@ -493,6 +535,7 @@ export class PermissionsController {
    * origins to permissions to remove.
    */
   removePermissionsFor (domains) {
+    console.log("removePermissionsFor(" + domains + ")")
 
     Object.entries(domains).forEach(([origin, perms]) => {
 
@@ -514,6 +557,7 @@ export class PermissionsController {
    * Removes all known domains and their related permissions.
    */
   clearPermissions () {
+    console.log("clearPermissions()")
     this.permissions.clearDomains()
     this._notifyAllDomains({
       method: NOTIFICATION_NAMES.accountsChanged,
@@ -532,6 +576,7 @@ export class PermissionsController {
    * @param {Object} metadata - The domain's metadata that will be stored.
    */
   addDomainMetadata (origin, metadata) {
+    console.log("addDomainMetadata(" + origin + ", " + metadata + ")")
 
     const oldMetadataState = this.store.getState()[METADATA_STORE_KEY]
     const newMetadataState = { ...oldMetadataState }
@@ -589,6 +634,7 @@ export class PermissionsController {
    * @returns {Object} The new metadata state object.
    */
   _trimDomainMetadata (metadataState) {
+    console.log("_trimDomainMetadata()")
 
     const newMetadataState = { ...metadataState }
     const origins = Object.keys(metadataState)
@@ -618,11 +664,16 @@ export class PermissionsController {
    * @returns {Array<string>|null} The list of permitted accounts
    */
   _getPermittedAccounts (origin) {
+    console.log("_getPermittedAccounts(" + origin + ")")
     const permittedAccounts = this.permissions
       .getPermission(origin, 'eth_accounts')
       ?.caveats
       ?.find((caveat) => caveat.name === CAVEAT_NAMES.exposedAccounts)
       ?.value
+
+    console.log("permittedAccounts: " + permittedAccounts)
+
+    //return ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
 
     return permittedAccounts || null
   }
@@ -637,6 +688,7 @@ export class PermissionsController {
    * @param {string} account - The newly selected account's address.
    */
   async _handleAccountSelected (account) {
+    console.log("_handleAccountSelected()")
 
     if (typeof account !== 'string') {
       throw new Error('Selected account should be a non-empty string.')
@@ -671,9 +723,11 @@ export class PermissionsController {
    * @param {string} origin - The origin
    */
   async _handleConnectedAccountSelected (origin) {
+    console.log("_handleConnectedAccountSelected()")
     const permittedAccounts = await this.getAccounts(origin)
+    const accounts = ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
 
-    this.notifyAccountsChanged(origin, permittedAccounts)
+    this.notifyAccountsChanged(origin, accounts)
   }
 
   /**
@@ -684,7 +738,7 @@ export class PermissionsController {
    * @param {Function} reject - The function rejecting the pending approval Promise.
    */
   _addPendingApproval (id, origin, resolve, reject) {
-
+    console.log("_addPendingApproval()")
     if (
       this.pendingApprovalOrigins.has(origin) ||
       this.pendingApprovals.has(id)
@@ -715,6 +769,7 @@ export class PermissionsController {
    * @param {string} origin = The origin string representing the domain.
    */
   _initializePermissions (restoredState) {
+    console.log("_initializePermissions()")
 
     // these permission requests are almost certainly stale
     const initState = { ...restoredState, permissionsRequests: [] }
@@ -728,6 +783,7 @@ export class PermissionsController {
       methodPrefix: WALLET_PREFIX,
 
       restrictedMethods: this._restrictedMethods,
+      //restrictedMethods: {},
 
       /**
        * A promise-returning callback used to determine whether to approve
@@ -739,6 +795,8 @@ export class PermissionsController {
        * @param {string} req - The internal rpc-cap user request object.
        */
       requestUserApproval: async (req) => {
+        console.log("requestUserApproval")
+        //return false
         const { metadata: { id, origin } } = req
 
         if (this.pendingApprovalOrigins.has(origin)) {

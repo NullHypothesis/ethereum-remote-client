@@ -244,8 +244,13 @@ export default class MetamaskController extends EventEmitter {
           const selectedAddress = this.preferencesController.getSelectedAddress()
           return selectedAddress ? [selectedAddress] : []
         } else if (this.isUnlocked()) {
+          //this.permissionsController.addPermittedAccount(origin, "0x0123456789abcdef0123456789abcdef01234567")
+          //this.permissionsController.addPermittedAccount(origin, "0x21102cea8c0026b53072d8410820074ac0a2215e")
+
+          console.log("getAccounts(" + origin + ") from metamask-controller.js:initializeProvider")
           return await this.permissionsController.getAccounts(origin)
         }
+        console.log("confusing branch in metamask-controller.js")
         return [] // changing this is a breaking change
       },
       // tx signing
@@ -567,6 +572,7 @@ export default class MetamaskController extends EventEmitter {
     * @param {EthQuery} ethQuery - The EthQuery instance to use when asking the network
     */
   getBalance (address, ethQuery) {
+    log.debug("CALL getBalance")
     return new Promise((resolve, reject) => {
       const cached = this.accountTracker.store.getState().accounts[address]
 
@@ -1494,6 +1500,7 @@ export default class MetamaskController extends EventEmitter {
     * @param {boolean} [options.isInternal] - True if called for a connection to an internal process
     **/
   setupProviderEngine ({ origin, location, extensionId, tabId, isInternal = false }) {
+    console.log("setupProviderEngine for " + origin)
     // setup json rpc engine stack
     const engine = new RpcEngine()
     const provider = this.provider
@@ -1527,6 +1534,8 @@ export default class MetamaskController extends EventEmitter {
     engine.push(subscriptionManager.middleware)
     if (!isInternal) {
       // permissions
+      //console.log("calling addPermittedAccount for " + origin)
+      //this.permissionsController.addPermittedAccount(origin, "0x21102cea8c0026b53072d8410820074ac0a2215e")
       engine.push(this.permissionsController.createMiddleware({ origin, extensionId }))
     }
     // watch asset

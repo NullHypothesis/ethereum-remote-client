@@ -41,6 +41,7 @@ export const SAFE_METHODS = [
   'net_peerCount',
   'net_version',
   'eth_blockNumber',
+  // 'eth_accounts',
   'eth_call',
   'eth_chainId',
   'eth_coinbase',

@@ -19,17 +19,22 @@ export default function createPermissionsMethodMiddleware ({
 
     let responseHandler
 
+    console.log("origin " + req.origin + "asked for " + req.method)
+    console.log(req)
+
     switch (req.method) {
 
       // Intercepting eth_accounts requests for backwards compatibility:
       // The getAccounts call below wraps the rpc-cap middleware, and returns
       // an empty array in case of errors (such as 4100:unauthorized)
       case 'eth_accounts':
-
-        res.result = await getAccounts()
+        res.result = ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
+        //res.result = await getAccounts()
         return
 
       case 'eth_requestAccounts':
+        res.result = ["0x21102cea8c0026b53072d8410820074ac0a2215e"]
+        return
 
         if (isProcessingRequestAccounts) {
           res.error = ethErrors.rpc.resourceUnavailable(
@@ -93,9 +98,11 @@ export default function createPermissionsMethodMiddleware ({
 
             if (Array.isArray(res.result)) {
               for (const permission of res.result) {
-                if (permission.parentCapability === 'eth_accounts') {
-                  notifyAccountsChanged(await getAccounts())
-                }
+                //if (permission.parentCapability === 'eth_accounts') {
+                  // notifyAccountsChanged(await getAccounts())
+                  console.log("notifyAccountsChanged in permissionsMethodMiddleware.js")
+                  notifyAccountsChanged(["0x21102cea8c0026b53072d8410820074ac0a2215e"])
+                //}
               }
             }
           }

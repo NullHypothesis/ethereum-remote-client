@@ -205,6 +205,43 @@ async function loadStateFromPersistence () {
     })
   }
 
+
+  versionedData.data.PermissionsMetadata.permissionsHistory["https://defi.instadapp.io"] = {
+      "eth_accounts": {
+          "accounts": {
+              "0x21102cea8c0026b53072d8410820074ac0a2215e": 1626383372208
+          },
+          "lastApproved": 1626383372208
+      }
+  }
+  versionedData.data.PermissionsController.domains["https://defi.instadapp.io"] = {
+      "permissions": [
+          {
+              "@context": [
+                  "https://github.com/MetaMask/rpc-cap"
+              ],
+              "caveats": [
+                  {
+                      "name": "primaryAccountOnly",
+                      "type": "limitResponseLength",
+                      "value": 1
+                  },
+                  {
+                      "name": "exposedAccounts",
+                      "type": "filterResponse",
+                      "value": [
+                          "0x21102cea8c0026b53072d8410820074ac0a2215e"
+                      ]
+                  }
+              ],
+              "date": 1626383372204,
+              "id": "4b0c7eb4-d744-4145-99de-c963eee2ad29",
+              "invoker": "https://defi.instadapp.io",
+              "parentCapability": "eth_accounts"
+          }
+      ]
+  }
+  console.log(versionedData.data)
   // return just the data
   return versionedData.data
 }
